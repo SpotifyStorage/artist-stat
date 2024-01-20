@@ -4,7 +4,6 @@ import { QueueService } from './queue/queue.service';
 import { DatabaseService } from './database/database.service';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
-import { ArtiststatDto } from './database/interface/artiststat.dto';
 
 @Module({
     imports: [
@@ -26,9 +25,12 @@ export class AppModule implements OnModuleInit {
     logger = new Logger(AppModule.name)
 
     onModuleInit() {
+        this.logger.verbose('Initialisation of service bus queue receiver...')
+        console.log('Hello World!\n')
+        console.log('\rOki')
         const receiver = this.queueService.addReceiver(async message => {
-            this.logger.verbose(`Received a messages from the queue containing ${message.body.length} artists with their stats`)
-            this.databaseService.addMany(message.body)
+            this.logger.verbose(`Received a message from the queue containing ${message.body.length} artists with their stats`)
+            this.databaseService.addMany(message.body.map((artist) => ({date: artist.date, ...artist})))
         })
     }
 }

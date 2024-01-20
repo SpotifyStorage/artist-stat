@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DefaultAzureCredential } from '@azure/identity';
+import { StorageSharedKeyCredential  } from '@azure/storage-blob';
 import { TableClient } from '@azure/data-tables';
 import { ConfigService } from '@nestjs/config';
 import { ArtiststatDto } from './interface/artiststat.dto';
@@ -15,23 +16,31 @@ export class DatabaseService implements OnModuleInit {
     ) { }
 
     onModuleInit() {
-        const credentials = new DefaultAzureCredential();
+        //const credentials = new DefaultAzureCredential();
+        // this.artiststatTableClient = new TableClient(
+        //     this.configService.get('AZURE_TABLE_STORAGE_URL'),
+        //     "artiststatistics",
+        //     credentials
+        // );
         this.artiststatTableClient = new TableClient(
-            this.configService.get('AZURE_TABLE_STORAGE_URL'),
-            "artiststatistics",
-            credentials
-        );
+            'https://spotifystoragequeues.table.core.windows.net/?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-01-20T03:03:42Z&st=2024-01-19T19:03:42Z&spr=https&sig=Gs95MblEpG%2F1xCMdjyH2iJjrWaR6CiJTUNsuC8%2BR3Dw%3D',
+            'artiststatistics'
+        )
     }
 
     async addOne(artistStat: ArtiststatDto) {
         this.logger.verbose(`Adding artist statistics data to database (artist:${artistStat.uri})`)
+        console.log(artistStat)
         const artiststatTableItem: ArtiststatTableItem = {
             partitionKey: artistStat.uri,
-            rowKey: new Date().toISOString(), // Generate a unique row key using the current timestamp
+            rowKey: artistStat.date.getNormalizedDate(), /** Generate a unique row key using the current timestamp
+            Message à moi-meme: il se pourrait que discovery envoie deux fois le meme "artistStat" donc 2 fois le meme artiste en meme temps donc avec le meme timestamp
+            Donc s'il y a un problème d'unicité, il faut retourner à 'rowKey: new Date().toISOString()'             */ 
             follower: artistStat.follower,
             monthlyListener: artistStat.monthlyListener,
             worldRank: artistStat.worldRank,
         }
+        console.log(artiststatTableItem)
         return await this.artiststatTableClient.createEntity(artiststatTableItem);
     }
 
@@ -86,8 +95,8 @@ export class DatabaseService implements OnModuleInit {
     //     return latestPlaybookDtos;
     // }
 
-    // async getOneByDate(uri: string, date: string) { //not tested
-    //     this.logger.verbose(`Getting playcount data from database: ${uri} on ${date}`)
+    // async getOneByDate(uri: string, date: number) { //not tested
+    //     this.logger.verbose(`Getting artist's statistics data from database: ${uri} on ${date}`)
     //     return this.artiststatTableClient.getEntity<ArtiststatTableItem>(uri, date);
     // }
 
@@ -103,3 +112,4 @@ export class DatabaseService implements OnModuleInit {
     // }
 
 }
+
