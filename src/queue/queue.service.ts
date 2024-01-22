@@ -1,11 +1,12 @@
 import { DefaultAzureCredential } from '@azure/identity';
 import { ServiceBusClient, ServiceBusReceiver, ServiceBusSender } from '@azure/service-bus';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Subject } from 'rxjs';
 import { ArtistStatQueueMessageBody } from './interface/artist-stat-queue-message.interface';
 
 @Injectable()
 export class QueueService {
+    logger = new Logger(QueueService.name)
     queue$ = new Subject<{albumUri: string}>()
     fullyQualifiedNamespace = "spotifystorage.servicebus.windows.net";
     credential = new DefaultAzureCredential();
@@ -25,7 +26,7 @@ export class QueueService {
         receiver.subscribe({
             processMessage: processMessageCallback,
             processError: async (err) => {
-                console.log("Error", err);
+                this.logger.error("Error", err);
             }
         });
         return receiver;
