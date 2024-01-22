@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: binimo/spots-statistics:${{ github.run_number }}
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: spotify-statistics
+          resourceGroup: SpotifyStorage
+          registryUrl: registry.hub.docker.com
+          imageToDeploy: binimo/spots-statistics:${{ github.run_number }}
+          environmentVariables: "AZURE_TABLE_STORAGE_URL=${{ secrets.AZURE_TABLE_STORAGE_URL }}"
+          targetPort: 3020

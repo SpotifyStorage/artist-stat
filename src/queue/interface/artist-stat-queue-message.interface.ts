@@ -1,7 +1,7 @@
 import { ServiceBusReceivedMessage } from "@azure/service-bus"
-import { ArtistStat } from "./artist-stat.interface"
+import { ArtiststatDto } from "src/database/interface/artiststat.dto"
 
 export interface ArtistStatQueueMessageBody extends ServiceBusReceivedMessage {
-    body: ArtistStat[]
+    body: ArtiststatDto[]
 }
 

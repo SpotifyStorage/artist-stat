@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DefaultAzureCredential } from '@azure/identity';
-import { StorageSharedKeyCredential  } from '@azure/storage-blob';
 import { TableClient } from '@azure/data-tables';
 import { ConfigService } from '@nestjs/config';
 import { ArtiststatDto } from './interface/artiststat.dto';
@@ -23,25 +22,24 @@ export class DatabaseService implements OnModuleInit {
         //     credentials
         // );
         this.artiststatTableClient = new TableClient(
-            'https://spotifystoragequeues.table.core.windows.net/?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-01-20T03:03:42Z&st=2024-01-19T19:03:42Z&spr=https&sig=Gs95MblEpG%2F1xCMdjyH2iJjrWaR6CiJTUNsuC8%2BR3Dw%3D',
+            this.configService.get('AZURE_SAS_CONNECTION_STRING'),
             'artiststatistics'
         )
+        // WARNING: this onModuleInit() is called 2 times on init !! (demo: use console.log())
     }
 
     async addOne(artistStat: ArtiststatDto) {
         this.logger.verbose(`Adding artist statistics data to database (artist:${artistStat.uri})`)
-        console.log(artistStat)
         const artiststatTableItem: ArtiststatTableItem = {
             partitionKey: artistStat.uri,
-            rowKey: artistStat.date.getNormalizedDate(), /** Generate a unique row key using the current timestamp
+            rowKey: artistStat.date, /** Generate a unique row key using the current timestamp
             Message à moi-meme: il se pourrait que discovery envoie deux fois le meme "artistStat" donc 2 fois le meme artiste en meme temps donc avec le meme timestamp
             Donc s'il y a un problème d'unicité, il faut retourner à 'rowKey: new Date().toISOString()'             */ 
             follower: artistStat.follower,
             monthlyListener: artistStat.monthlyListener,
             worldRank: artistStat.worldRank,
         }
-        console.log(artiststatTableItem)
-        return await this.artiststatTableClient.createEntity(artiststatTableItem);
+        return await this.artiststatTableClient.upsertEntity(artiststatTableItem);
     }
 
     async addMany(statsOfArtists: ArtiststatDto[]) {
@@ -49,7 +47,7 @@ export class DatabaseService implements OnModuleInit {
         return statsOfArtists.map(async statsOfArtist => await this.addOne(statsOfArtist))
     }
 
-    async getMany(uri: string) {
+    async getAll(uri: string) {
         this.logger.verbose(`Getting statistics data from database of the following artist '${uri}'`)
         const artiststatsEntities = this.artiststatTableClient.listEntities<ArtiststatTableItem>({
             queryOptions: { filter: `PartitionKey eq '${uri}'` }

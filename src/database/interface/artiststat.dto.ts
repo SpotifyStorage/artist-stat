@@ -1,4 +1,3 @@
-import { CustomDate } from "src/date";
 import { ArtiststatTableItem } from "./artiststat-table-item.interface";
 
 
@@ -7,7 +6,7 @@ export class ArtiststatDto {
     follower: number;
     monthlyListener: number;
     worldRank: number;
-    date: CustomDate;
+    date: string;
 
     static fromTableItem(tableItem: ArtiststatTableItem): ArtiststatDto {
         return {
@@ -15,7 +14,7 @@ export class ArtiststatDto {
             follower: tableItem.follower,
             monthlyListener: tableItem.monthlyListener,
             worldRank: tableItem.worldRank,
-            date: new CustomDate(tableItem.rowKey),
+            date: tableItem.rowKey,
         }
     }
 }
