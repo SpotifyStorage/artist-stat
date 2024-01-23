@@ -42,37 +42,49 @@ export class DatabaseService implements OnModuleInit {
         return await this.artiststatTableClient.upsertEntity(artiststatTableItem);
     }
 
-    async addMany(statsOfArtists: ArtiststatDto[]) {
+    addMany(statsOfArtists: ArtiststatDto[]) {
         this.logger.verbose(`Adding statistics data for ${statsOfArtists.length} artists to database`)
         return statsOfArtists.map(async statsOfArtist => await this.addOne(statsOfArtist))
     }
 
-    async getAll(uri: string) {
-        this.logger.verbose(`Getting statistics data from database of the following artist '${uri}'`)
+    async getArtistStats(option: string): Promise<ArtiststatDto[]> {
         const artiststatsEntities = this.artiststatTableClient.listEntities<ArtiststatTableItem>({
-            queryOptions: { filter: `PartitionKey eq '${uri}'` }
+            queryOptions: { filter: option }
         });
-        const statsOfArtists: ArtiststatDto[] = [];
+        const artistStats: ArtiststatDto[] = [];
         for await (const entity of artiststatsEntities) {
-            statsOfArtists.push(ArtiststatDto.fromTableItem(entity));
+            artistStats.push(ArtiststatDto.fromTableItem(entity));
         }
-
-        return statsOfArtists
+        return artistStats
     }
 
-    async getOneLatest(uri: string) {
-        this.logger.verbose(`Getting latest statistics data from database of the following artist '${uri}'`)
-        const artiststatsEntities = this.artiststatTableClient.listEntities<ArtiststatTableItem>({
-            queryOptions: { filter: `PartitionKey eq '${uri}'` }
-        });
-        const statsOfArtists: ArtiststatDto[] = [];
-        for await (const entity of artiststatsEntities) {
-            statsOfArtists.push(ArtiststatDto.fromTableItem(entity));
-        }
+    getAllFromOneArtist(uri: string): Promise<ArtiststatDto[]> {
+        this.logger.verbose(`Getting statistics data from database of the following artist '${uri}'`)
+        return this.getArtistStats(`PartitionKey eq '${uri}'`)
+    }
 
-        return statsOfArtists
+    getByDateFromOneArtist(uri: string, date: string): Promise<ArtiststatDto> {
+        this.logger.verbose(`Getting statistics data from database of the following artist '${uri}'`)
+        return this.getArtistStats(`PartitionKey eq '${uri}' and RowKey eq '${date}'`)[0]
+    }
+
+    async getLatestFromOneArtist(uri: string): Promise<ArtiststatDto> {
+        this.logger.verbose(`Getting latest statistics data from database of the following artist '${uri}'`)
+        const artistStats = await this.getAllFromOneArtist(uri)
+        return artistStats
             .reduce((prev, current) => (prev.date > current.date) ? prev : current);
     }
+
+    async getLastestFromManyArtists(uris: string[]) {
+        let artistsStats: ArtiststatDto[] = []
+        for (let uri of uris) {
+            artistsStats.push(await this.getLatestFromOneArtist(uri))
+        }
+        return artistsStats
+    }
+
+
+
 
     // async getManyLatestByAlbumUri(albumUri: string) {
     //     this.logger.verbose(`Getting latest statistics data from database for th ${albumUri}`)
