@@ -39,5 +39,5 @@ jobs:
           resourceGroup: SpotifyStorage
           registryUrl: registry.hub.docker.com
           imageToDeploy: binimo/spots-statistics:${{ github.run_number }}
-          environmentVariables: "AZURE_TABLE_STORAGE_URL=${{ secrets.AZURE_TABLE_STORAGE_URL }}"
+          environmentVariables: "AZURE_TABLE_STORAGE_URL=${{ secrets.AZURE_TABLE_STORAGE_URL }} AZURE_SAS_CONNECTION_STRING=${{ secrets.AZURE_SAS_CONNECTION_STRING }}"
           targetPort: 3020
