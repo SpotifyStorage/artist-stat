@@ -68,6 +68,11 @@ export class DatabaseService implements OnModuleInit {
         return this.getArtistStats(`PartitionKey eq '${uri}' and RowKey eq '${date}'`)[0]
     }
 
+    getByTimeWindowFromOneArtist(uri: string, from: string, to: string): Promise<ArtiststatDto[]> {
+        this.logger.verbose(`Getting statistics data from database of the following artist '${uri}' from ${from} to ${to}`)
+        return this.getArtistStats(`PartitionKey eq '${uri}' and RowKey ge '${from}' and RowKey le '${to}'`)
+    }
+
     async getLatestFromOneArtist(uri: string): Promise<ArtiststatDto> {
         this.logger.verbose(`Getting latest statistics data from database of the following artist '${uri}'`)
         const artistStats = await this.getAllFromOneArtist(uri)

@@ -13,7 +13,8 @@ export class DatabaseController {
     getLatestFromManyArtist(@Query('artistUris') artistUris: string) {
         const artists = artistUris.split(',')
         if (artists[artists.length - 1] == '') {
-            return {error: "Last id is not specified."}
+            //return {error: "Last id is not specified."}
+            artists.pop()
         }
         return this.databaseService.getLastestFromManyArtists(artists)
     }
@@ -27,6 +28,14 @@ export class DatabaseController {
     @Get(':artistUri/latest')
     @ApiQuery({ name: 'artistUri' })
     getLatest(@Query('artistUri') artistUri: string) {
+        return this.databaseService.getLatestFromOneArtist(artistUri)
+    }
+
+    @Get(':artistUri/timeWindow')
+    @ApiQuery({ name: 'artistUri' })
+    @ApiQuery({ name: 'from' })
+    @ApiQuery({ name: 'to' })
+    getTimeWindow(@Query('artistUri') artistUri: string, @Query('from') from, @Query('to') to) {
         return this.databaseService.getLatestFromOneArtist(artistUri)
     }
 
