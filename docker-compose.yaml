@@ -1,10 +1,14 @@
-version: '3'
+version: '3.5'
 
 services:
-  database:
-    image: 'mcr.microsoft.com/mssql/server:2022-CU10-ubuntu-20.04'
-    ports:
-      - 1433:1433
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-docker-postgres
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=Password1!
+      - PORT=3020
+    ports:
+      - '3020:3020'
+    volumes:
+      - ./src:/app/src
