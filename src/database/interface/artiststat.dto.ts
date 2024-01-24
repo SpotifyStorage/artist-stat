@@ -3,16 +3,16 @@ import { ArtiststatTableItem } from "./artiststat-table-item.interface";
 
 export class ArtiststatDto {
     uri: string;
-    follower: number;
-    monthlyListener: number;
+    followers: number;
+    monthlyListeners: number;
     worldRank: number;
     date: string;
 
     static fromTableItem(tableItem: ArtiststatTableItem): ArtiststatDto {
         return {
             uri: tableItem.partitionKey,
-            follower: tableItem.follower,
-            monthlyListener: tableItem.monthlyListener,
+            followers: tableItem.followers,
+            monthlyListeners: tableItem.monthlyListeners,
             worldRank: tableItem.worldRank,
             date: tableItem.rowKey,
         }

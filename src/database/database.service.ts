@@ -35,8 +35,8 @@ export class DatabaseService implements OnModuleInit {
             rowKey: artistStat.date, /** Generate a unique row key using the current timestamp
             Message à moi-meme: il se pourrait que discovery envoie deux fois le meme "artistStat" donc 2 fois le meme artiste en meme temps donc avec le meme timestamp
             Donc s'il y a un problème d'unicité, il faut retourner à 'rowKey: new Date().toISOString()'             */ 
-            follower: artistStat.follower,
-            monthlyListener: artistStat.monthlyListener,
+            followers: artistStat.followers,
+            monthlyListeners: artistStat.monthlyListeners,
             worldRank: artistStat.worldRank,
         }
         return await this.artiststatTableClient.upsertEntity(artiststatTableItem);
