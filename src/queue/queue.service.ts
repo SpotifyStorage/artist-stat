@@ -29,14 +29,14 @@ export class QueueService {
                 this.logger.error("Error", err);
             }
         });
-        return receiver;
+        return receiver
     }
 
     async getSingleMessage() {
         const messages = await this.mainReceiver.receiveMessages(1);
         const message = messages[0];
         if (!message) {
-            return null;
+            return null
         }
         await this.mainReceiver.completeMessage(message);
         return JSON.parse(message.body)
